@@ -75,6 +75,38 @@ export default function TransmissionForm() {
   // 로그 필터
   const [typeFilter, setTypeFilter] = useState<RxType | "ALL">("ALL");
 
+  function stopOnUnload() {
+    try {
+      // running일 때만
+      if (!running) return;
+
+      // CORS/쿠키 안 쓰는 구조라면 이게 가장 간단함
+      const url = "http://localhost:8090/api/transmission/stop";
+
+      // 서버가 body를 안 읽어도 되게 빈 JSON 전송(또는 그냥 "" 도 가능)
+      const blob = new Blob([JSON.stringify({ reason: "page_unload" })], {
+        type: "application/json",
+      });
+
+      navigator.sendBeacon(url, blob);
+    } catch {
+      // ignore
+    }
+  }
+
+  useEffect(() => {
+    const handler = () => stopOnUnload();
+
+    // 탭 닫기/새로고침/다른 페이지 이동 등
+    window.addEventListener("pagehide", handler);
+    window.addEventListener("beforeunload", handler);
+
+    return () => {
+      window.removeEventListener("pagehide", handler);
+      window.removeEventListener("beforeunload", handler);
+    };
+  }, [running]);
+
   const payload: StartRequest = useMemo(
     () => ({
       dstIp: dstIp.trim(),
