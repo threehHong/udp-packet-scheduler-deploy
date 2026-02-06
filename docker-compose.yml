@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  backend:
+    build: ./backend
+    container_name: udp-backend
+    ports:
+      - "8090:8090"
+    restart: always
+
+  frontend:
+    build: ./frontend
+    container_name: udp-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://backend:8090
+    depends_on:
+      - backend
+    restart: always
